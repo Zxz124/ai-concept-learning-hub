@@ -2,7 +2,7 @@
 
 > **一句话定义**：在 AI Agent 框架中，"Skill" 是一个包含 `SKILL.md` 的目录，作为模型可按需加载的可调用能力单元——由模型根据任务描述自主判断何时调用，而非用户手动选择。
 > **所属领域**：AI / Agentic Systems / 工具与能力扩展
-> **首次提出 / 标准来源**：由 Anthropic 最初提出，发布为 **Agent Skills 开放标准**（[agentskills.io](https://agentskills.io)），现已被 Claude Code、Cursor、GitHub Copilot 等多工具采纳。
+> **首次提出 / 标准来源**：由 Anthropic 最初提出，发布为 **Agent Skills 开放标准**（[agentskills.io](https://agentskills.io/home)），现已被 Claude Code、Cursor、GitHub Copilot 等多工具采纳。
 > **辨析提示**：本卡片聚焦"Agent Skill"。其他常见含义（人类技能、游戏 Skill 树、Windows PowerShell Skill 等）不在此展开。如需切换含义请告知。
 
 ---
@@ -85,7 +85,7 @@
 ## 📚 参考来源（可核查）
 
 1. Anthropic. *Extend Claude with skills*. Claude Code Docs. [https://code.claude.com/docs/en/skills](https://code.claude.com/docs/en/skills) — 官方文档（SKILL.md 结构、frontmatter 字段、Skill 存放路径、与 CLAUDE.md 的区别）| 访问日期 2026-09-07
-2. Anthropic / Agent Skills 社区. *Agent Skills Overview*. [https://agentskills.io](https://agentskills.io) — Agent Skills 开放标准官网（标准定义、渐进式披露机制、跨工具兼容性）| 访问日期 2026-09-07
+2. Agent Skills 社区. *Agent Skills Overview*. [https://agentskills.io/home](https://agentskills.io/home) — Agent Skills 开放标准官网（标准定义、渐进式披露机制、跨工具兼容性）；`agentskills.io` 根域 308 重定向到本页 | 访问日期 2026-09-07
 
 ---
 *本卡片由 `concept-learner` Skill 生成*

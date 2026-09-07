@@ -83,7 +83,7 @@ Anthropic 在自家工程博客里就把 SWE-bench coding agent 作为 agentic �
 
 1. Lilian Weng. *LLM Powered Autonomous Agents*. Lil'Log, **2023-06-23**. [https://lilianweng.github.io/posts/2023-06-23-agent/](https://lilianweng.github.io/posts/2023-06-23-agent/) — 综述博客（首次系统化 LLM Agent = LLM + Planning + Memory + Tools 架构）| 访问日期 2026-09-07
 2. Erik Schluntz & Barry Zhang. *Building effective agents*. Anthropic Engineering Blog, **2024-12-19**. [https://www.anthropic.com/engineering/building-effective-agents](https://www.anthropic.com/engineering/building-effective-agents) — 工程指南（区分 Workflow vs Agent，提出"先简单再复杂"原则）| 访问日期 2026-09-07
-3. Anthropic Research. *Building Effective AI Agents*. [https://www.anthropic.com/research/building-effective-agents](https://www.anthropic.com/research/building-effective-agents) — 同篇文章在 Research 板块的镜像页 | 访问日期 2026-09-07
+3. Anthropic. *Building Effective AI Agents*. [https://www.anthropic.com/engineering/building-effective-agents](https://www.anthropic.com/engineering/building-effective-agents) — Anthropic 官方工程指南（同 engineering 文章）；`/research/` 路径是镜像页，访问会 307 跳转到本链接 | 访问日期 2026-09-07
 
 ---
 *本卡片由 `concept-learner` Skill 生成*
