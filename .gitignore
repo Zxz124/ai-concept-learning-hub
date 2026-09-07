@@ -1,0 +1,67 @@
+# ──────────────────────────────────────────────
+# .gitignore — ai-concept-learning-hub
+# 排除规则：环境变量、密钥、证书、配置文件、私密凭据
+# ──────────────────────────────────────────────
+
+# 环境变量文件（直接匹配你列出的 .env）
+.env
+.env.*
+!.env.example
+
+# 密钥 / 证书类文件
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.keystore
+id_rsa
+id_rsa.pub
+id_dsa
+id_dsa.pub
+id_ed25519
+id_ed25519.pub
+
+# 配置文件目录
+config/
+secrets/
+
+# 凭据 / 隐私兜底匹配（按文件名筛，匹配不到内容，但可拦下绝大多数误提交）
+*credentials*
+*credential*
+*password*
+*passwd*
+*api_key*
+*api-key*
+*apikey*
+*access_token*
+*access-token*
+*private_key*
+*private-key*
+*secret*
+
+# 常见凭证/配置文件命名
+*.netrc
+.npmrc
+.pypirc
+.pip.conf
+.htpasswd
+.netrc
+
+# Python / Node 运行时产物（顺手加的，避免学习材料误带）
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+node_modules/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# 本地草稿
+drafts/
+scratch/
