@@ -39,6 +39,77 @@ agent_created: true
 | --- | --- |
 | `Please tell me who you are` | 引导执行 `git config --global user.name "<姓名>"` 与 `git config --global user.email "<邮箱>"` 后重试 |
 | push 提示 `non-fast-forward` | 先 `git pull` 合并远程改动，再 `git push`；有冲突走安全规则 |
-| push 网络超时 | 重试一次；仍失败则检查网络/代理，告知用户稍后再推（本地提交已安全） |
+| push 网络超时 / 返回 502 | **先原地重试 2–3 次、每次间隔 5–10 秒**——本机出口是间歇性的，实测第 3 次就成功过。仍失败再走下面的连通性预检（本地提交始终安全） |
 | GitHub 认证失败 | 引导用户完成一次浏览器登录或配置 Personal Access Token，不要在命令行明文写入密码 |
 | `nothing to commit` | 告知用户没有新改动，无需提交 |
+
+## 推送前必做：连通性预检
+
+推送失败时**不要把网络问题和代码问题混在一起**交给用户。先跑：
+
+```bash
+git ls-remote origin -h >/dev/null 2>&1 && echo 通 || echo 不通
+```
+
+- 通 → 网络没问题，push 失败另有原因（认证、非快进等），按上表处理。
+- 不通 → **先重试 push 2–3 次（间隔 5–10 秒）再下判断**：本机出口是间歇性的，"预检失败但紧接着 push 成功"实测发生过（2026-09-24）。
+- 连续多次仍不通 → 再走下面的"到 GitHub 的路"排查，并把结论如实告诉用户。
+
+**判断推送是否成功，只认这条命令**（`git status` 里的 `ahead/gone` 在本机可能不准）：
+
+```bash
+git ls-remote origin refs/heads/main   # 输出哈希，与 git rev-parse main 比对
+```
+
+## 到 GitHub 的路（本机环境实测结论）
+
+**关键前提（2026-09-24 更正）**：git / curl 实际走的出口来自**环境变量** `HTTP_PROXY` / `HTTPS_PROXY` = `http://127.0.0.1:<动态端口>`（历史见过 50791 / 52673 / 62971，**每次会话都变**）。本机**没有** Clash / v2ray / Mihomo 进程，系统代理 `ProxyEnable=0`；雷神加速器是**游戏**加速器、当时并未运行。
+→ 这个 127.0.0.1 代理属于**运行环境自带的出口代理**，不是用户的代理软件。它**间歇性可用**。
+
+| 通道 | 结果 |
+| --- | --- |
+| 环境出口代理（`$HTTPS_PROXY`） | 国内站点 200 ✅；GitHub **时好时坏**：502 与成功交替出现 ⚠️ |
+| 直连 https://github.com:443（`curl --noproxy '*'`） | 超时 ❌ |
+| SSH 22 端口 | 超时 ❌ |
+| SSH over 443（`ssh.github.com:443`） | 超时 / `Connection reset` ❌（SNI 阻断） |
+| IPv6 直连 | 无 AAAA 解析 ❌ |
+| hosts 加速 | **无效**（属 SNI 阻断，不是 DNS 污染） |
+
+**结论：先靠"重试 2–3 次"消化间歇性 502，不要一见 502 就断言"没有出境出口"。** 只有连续多次不通，才按下面的处置顺序走。
+
+遇到"不通"时的处置顺序：
+
+1. 明确告诉用户："这不是代码问题，是本机没有能到 GitHub 的网络出口"，并给出结论性证据（上面的表格）。
+2. 立刻保底：`git bundle create <桌面>/ai-hub-backup.bundle --all`，并在仓库内 `git bundle verify` 确认 "records a complete history"。数据安全永远是第一优先级。
+3. 给出替代路径，让用户选：
+   - **国内云端备份**：绑定 Gitee 远端（`git remote add gitee <地址>` 后 `git push -u gitee main`）。国内直连实测 200，秒推成功。
+   - **等有网络时再推 GitHub**：桌面 `push-to-github.bat` 双击即可（内含 `git ls-remote` 预检）。
+4. 绝不建议把 GitHub 账号密码/Token 交给第三方"推送代理"服务。
+
+## 权限：403 与只读令牌（本机特有）
+
+本机 `~/.gitconfig` 为 `credential.https://github.com` 配置了 WorkBuddy 自带的 gh 助手
+（`...\.workbuddy\binaries\gh\pkg\bin\gh.exe auth git-credential`），它返回的是**只读令牌**（`ghu_` 前缀，`X-OAuth-Scopes` 为空）。表现是：`git ls-remote` 成功，但 push 被拒：
+
+```
+remote: Permission to <owner>/<repo>.git denied to <user>.
+fatal: unable to access '...': The requested URL returned error: 403
+```
+
+排查顺序：
+
+1. `git credential fill` 看 `username=` 与令牌前缀，确认在用哪张令牌。
+2. `curl -sI -H "Authorization: Bearer <token>" https://api.github.com/user` 看 `X-OAuth-Scopes` —— 为空即无写权限。
+3. 注意：`/repos/{owner}/{repo}` 返回的 `permissions.admin/push` 表示的是**该用户的角色**，不代表**令牌被授予的范围**，两者都要看，别被 `push: true` 误导。
+4. 修复：在**该仓库的 `.git/config`** 里先用空值重置、再挂 GCM。⚠️ 空值必须**直接写进配置文件**，`git config key ""` 不会把空值保存下来：
+
+```ini
+[credential "https://github.com"]
+	helper =
+	helper = manager
+```
+
+之后 `git push` 会弹出 GitHub 登录/授权窗口（GCM），由用户本人完成一次授权，凭据存入 Windows 凭据管理器，之后自动复用。
+
+5. 面向新手的一键版：桌面 `login-and-push.bat`（含提示与错误指引）。
+6. 绝不把账号密码/令牌写进命令行或仓库，也不用第三方"推送代理"。
